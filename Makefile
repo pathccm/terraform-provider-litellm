@@ -1,5 +1,5 @@
 HOSTNAME=registry.terraform.io
-NAMESPACE=local
+NAMESPACE=pathccm
 NAME=litellm
 VERSION=1.0.0
 OS_ARCH=darwin_amd64

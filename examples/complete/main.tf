@@ -4,7 +4,7 @@
 terraform {
   required_providers {
     litellm = {
-      source = "registry.terraform.io/ncecere/litellm"
+      source = "registry.terraform.io/pathccm/litellm"
     }
   }
 }
@@ -358,6 +358,19 @@ output "team_ids" {
     data_science = litellm_team.data_science.team_id
     support      = litellm_team.support.team_id
   }
+}
+
+# =============================================================================
+# ROUTER SETTINGS
+# =============================================================================
+
+resource "litellm_router_settings" "enterprise" {
+  routing_strategy       = "latency-based-routing"
+  num_retries            = 3
+  timeout                = 60
+  cooldown_time          = 120
+  allowed_fails          = 3
+  enable_pre_call_checks = true
 }
 
 output "api_keys" {

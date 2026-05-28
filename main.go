@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/nicholas-cecere/terraform-provider-litellm/internal/provider"
+	"github.com/pathccm/terraform-provider-litellm/internal/provider"
 )
 
 // version is set during the release process via -ldflags
@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "registry.terraform.io/nicholas-cecere/litellm",
+		Address: "registry.terraform.io/pathccm/litellm",
 		Debug:   debug,
 	}
 
