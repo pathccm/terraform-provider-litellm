@@ -162,6 +162,7 @@ func (p *LiteLLMProvider) Resources(ctx context.Context) []func() resource.Resou
 		NewGuardrailResource,
 		NewSearchToolResource,
 		NewFallbackResource,
+		NewRouterSettingsResource,
 		NewAgentResource,
 		NewProjectResource,
 	}

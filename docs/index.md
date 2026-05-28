@@ -8,7 +8,7 @@ The LiteLLM provider allows Terraform to manage LiteLLM resources. LiteLLM is a 
 terraform {
   required_providers {
     litellm = {
-      source = "registry.terraform.io/ncecere/litellm"
+      source = "registry.terraform.io/pathccm/litellm"
     }
   }
 }
@@ -164,19 +164,19 @@ The provider includes comprehensive examples in the `examples/` directory:
 
 | Example | Description |
 |---------|-------------|
-| [minimal](https://github.com/ncecere/terraform-provider-litellm/tree/main/examples/minimal) | Simplest possible setup |
-| [complete](https://github.com/ncecere/terraform-provider-litellm/tree/main/examples/complete) | Full enterprise configuration |
-| [multi-provider](https://github.com/ncecere/terraform-provider-litellm/tree/main/examples/multi-provider) | Multiple LLM providers |
-| [data-sources](https://github.com/ncecere/terraform-provider-litellm/tree/main/examples/data-sources) | Using data sources |
-| [mcp-servers](https://github.com/ncecere/terraform-provider-litellm/tree/main/examples/mcp-servers) | MCP server configurations |
-| [search-tools](https://github.com/ncecere/terraform-provider-litellm/tree/main/examples/search-tools) | Search tool configurations |
+| [minimal](https://github.com/pathccm/terraform-provider-litellm/tree/main/examples/minimal) | Simplest possible setup |
+| [complete](https://github.com/pathccm/terraform-provider-litellm/tree/main/examples/complete) | Full enterprise configuration |
+| [multi-provider](https://github.com/pathccm/terraform-provider-litellm/tree/main/examples/multi-provider) | Multiple LLM providers |
+| [data-sources](https://github.com/pathccm/terraform-provider-litellm/tree/main/examples/data-sources) | Using data sources |
+| [mcp-servers](https://github.com/pathccm/terraform-provider-litellm/tree/main/examples/mcp-servers) | MCP server configurations |
+| [search-tools](https://github.com/pathccm/terraform-provider-litellm/tree/main/examples/search-tools) | Search tool configurations |
 
 ## Getting Started
 
 1. Install the provider by adding it to your Terraform configuration
 2. Configure your LiteLLM instance URL and API key
-3. Start with the [minimal example](https://github.com/ncecere/terraform-provider-litellm/tree/main/examples/minimal) to create basic resources
-4. Explore the [complete example](https://github.com/ncecere/terraform-provider-litellm/tree/main/examples/complete) for enterprise configurations
+3. Start with the [minimal example](https://github.com/pathccm/terraform-provider-litellm/tree/main/examples/minimal) to create basic resources
+4. Explore the [complete example](https://github.com/pathccm/terraform-provider-litellm/tree/main/examples/complete) for enterprise configurations
 
 ## Best Practices
 
