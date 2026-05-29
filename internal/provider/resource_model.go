@@ -671,6 +671,10 @@ func (r *ModelResource) readModel(ctx context.Context, data *ModelResourceModel)
 	} else {
 		data.AdditionalLiteLLMParams, _ = types.MapValue(types.StringType, map[string]attr.Value{})
 	}
+	// Ensure additional_litellm_params is never unknown after read.
+	if data.AdditionalLiteLLMParams.IsUnknown() {
+		data.AdditionalLiteLLMParams, _ = types.MapValue(types.StringType, map[string]attr.Value{})
+	}
 
 	modelInfo, hasModelInfo := result["model_info"].(map[string]interface{})
 	if hasModelInfo {
@@ -716,6 +720,11 @@ func (r *ModelResource) readModel(ctx context.Context, data *ModelResourceModel)
 		// If the API didn't return access_groups and we already have a concrete
 		// value (from config/state), leave it as-is.
 	} else if data.AccessGroups.IsUnknown() {
+		data.AccessGroups, _ = types.ListValue(types.StringType, []attr.Value{})
+	}
+
+	// Final safety net: access_groups must never be unknown after read.
+	if data.AccessGroups.IsUnknown() {
 		data.AccessGroups, _ = types.ListValue(types.StringType, []attr.Value{})
 	}
 

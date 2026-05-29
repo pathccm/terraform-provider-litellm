@@ -294,6 +294,42 @@ func (r *RouterSettingsResource) readRouterSettings(ctx context.Context, data *R
 		data.ModelGroupAlias = types.StringValue(fmt.Sprintf("%v", v))
 	}
 
+	// Resolve any remaining unknown fields to null so Terraform does not
+	// error with "provider still indicated an unknown value after apply".
+	if data.RoutingStrategy.IsUnknown() {
+		data.RoutingStrategy = types.StringNull()
+	}
+	if data.RoutingStrategyArgs.IsUnknown() {
+		data.RoutingStrategyArgs = types.StringNull()
+	}
+	if data.ModelGroupRetryPolicy.IsUnknown() {
+		data.ModelGroupRetryPolicy = types.StringNull()
+	}
+	if data.AllowedFails.IsUnknown() {
+		data.AllowedFails = types.Int64Null()
+	}
+	if data.CooldownTime.IsUnknown() {
+		data.CooldownTime = types.Float64Null()
+	}
+	if data.NumRetries.IsUnknown() {
+		data.NumRetries = types.Int64Null()
+	}
+	if data.Timeout.IsUnknown() {
+		data.Timeout = types.Float64Null()
+	}
+	if data.MaxRetries.IsUnknown() {
+		data.MaxRetries = types.Int64Null()
+	}
+	if data.RetryAfter.IsUnknown() {
+		data.RetryAfter = types.Float64Null()
+	}
+	if data.EnablePreCallChecks.IsUnknown() {
+		data.EnablePreCallChecks = types.BoolNull()
+	}
+	if data.ModelGroupAlias.IsUnknown() {
+		data.ModelGroupAlias = types.StringNull()
+	}
+
 	data.ID = types.StringValue("router_settings")
 	return nil
 }
