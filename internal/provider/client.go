@@ -41,6 +41,10 @@ func (c *Client) DoRequest(ctx context.Context, method, path string, body interf
 		req.Header.Set("litellm-changed-by", c.LiteLLMChangedBy)
 	}
 
+	for k, v := range c.ExtraHeaders {
+		req.Header.Set(k, v)
+	}
+
 	return c.HTTPClient.Do(req)
 }
 
