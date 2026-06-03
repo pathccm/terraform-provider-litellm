@@ -31,6 +31,7 @@ type LiteLLMProviderModel struct {
 	APIKey             types.String `tfsdk:"api_key"`
 	InsecureSkipVerify types.Bool   `tfsdk:"insecure_skip_verify"`
 	LiteLLMChangedBy   types.String `tfsdk:"litellm_changed_by"`
+	ExtraHeaders       types.Map    `tfsdk:"extra_headers"`
 }
 
 // Client holds the HTTP client and configuration for API calls.
@@ -38,6 +39,7 @@ type Client struct {
 	APIBase          string
 	APIKey           string
 	LiteLLMChangedBy string
+	ExtraHeaders     map[string]string
 	HTTPClient       *http.Client
 }
 
@@ -66,6 +68,12 @@ func (p *LiteLLMProvider) Schema(ctx context.Context, req provider.SchemaRequest
 			"litellm_changed_by": schema.StringAttribute{
 				Description: "Value for the litellm-changed-by header to track actions performed by authorized users.",
 				Optional:    true,
+			},
+			"extra_headers": schema.MapAttribute{
+				ElementType: types.StringType,
+				Description: "Additional HTTP headers to include on every request (e.g. Cloudflare Access service-token headers).",
+				Optional:    true,
+				Sensitive:   true,
 			},
 		},
 	}
@@ -121,6 +129,16 @@ func (p *LiteLLMProvider) Configure(ctx context.Context, req provider.ConfigureR
 		litellmChangedBy = config.LiteLLMChangedBy.ValueString()
 	}
 
+	extraHeaders := map[string]string{}
+	if !config.ExtraHeaders.IsNull() && !config.ExtraHeaders.IsUnknown() {
+		elements := config.ExtraHeaders.Elements()
+		for k, v := range elements {
+			if sv, ok := v.(types.String); ok {
+				extraHeaders[k] = sv.ValueString()
+			}
+		}
+	}
+
 	// Create HTTP client with TLS configuration
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: insecureSkipVerify},
@@ -130,6 +148,7 @@ func (p *LiteLLMProvider) Configure(ctx context.Context, req provider.ConfigureR
 		APIBase:          apiBase,
 		APIKey:           apiKey,
 		LiteLLMChangedBy: litellmChangedBy,
+		ExtraHeaders:     extraHeaders,
 		HTTPClient: &http.Client{
 			Transport: tr,
 			Timeout:   30 * time.Second,
