@@ -315,6 +315,7 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	data.ID = state.ID
 	teamReq := r.buildTeamRequest(ctx, &data, data.ID.ValueString())
+	applyTeamNullableClears(teamReq, &state, &data)
 
 	if err := r.client.DoRequestWithResponse(ctx, "POST", "/team/update", teamReq, nil); err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update team: %s", err))
@@ -493,6 +494,35 @@ func (r *TeamResource) buildTeamRequest(ctx context.Context, data *TeamResourceM
 	return teamReq
 }
 
+// applyTeamNullableClears mutates teamReq to send explicit JSON null for nullable
+// fields that transition from set (non-null in state) to cleared (null in plan).
+// Without this, json.Marshal omits the field entirely; the LiteLLM API uses Pydantic
+// exclude_unset=True and ignores omitted fields, so the prior value persists and
+// Terraform sees "Provider produced inconsistent result after apply".
+func applyTeamNullableClears(teamReq map[string]interface{}, state, plan *TeamResourceModel) {
+	if !state.MaxBudget.IsNull() && plan.MaxBudget.IsNull() {
+		teamReq["max_budget"] = nil
+	}
+	if !state.BudgetDuration.IsNull() && plan.BudgetDuration.IsNull() {
+		teamReq["budget_duration"] = nil
+	}
+	if !state.TPMLimit.IsNull() && plan.TPMLimit.IsNull() {
+		teamReq["tpm_limit"] = nil
+	}
+	if !state.RPMLimit.IsNull() && plan.RPMLimit.IsNull() {
+		teamReq["rpm_limit"] = nil
+	}
+	if !state.TeamMemberBudget.IsNull() && plan.TeamMemberBudget.IsNull() {
+		teamReq["team_member_budget"] = nil
+	}
+	if !state.TeamMemberRPMLimit.IsNull() && plan.TeamMemberRPMLimit.IsNull() {
+		teamReq["team_member_rpm_limit"] = nil
+	}
+	if !state.TeamMemberTPMLimit.IsNull() && plan.TeamMemberTPMLimit.IsNull() {
+		teamReq["team_member_tpm_limit"] = nil
+	}
+}
+
 // buildRouterSettingsPayload converts the Terraform router_settings object into
 // the LiteLLM API wire format where each fallback entry is a single-key dict:
 // [{"primary_model": ["fallback1", "fallback2"]}]
@@ -550,17 +580,41 @@ func (r *TeamResource) readTeam(ctx context.Context, data *TeamResourceModel) er
 	if orgID, ok := teamInfo["organization_id"].(string); ok && orgID != "" {
 		data.OrganizationID = types.StringValue(orgID)
 	}
-	if tpm, ok := teamInfo["tpm_limit"].(float64); ok {
-		data.TPMLimit = types.Int64Value(int64(tpm))
+	if v, exists := teamInfo["tpm_limit"]; exists {
+		if tpm, ok := v.(float64); ok {
+			data.TPMLimit = types.Int64Value(int64(tpm))
+		} else if v == nil {
+			data.TPMLimit = types.Int64Null()
+		}
+	} else if data.TPMLimit.IsUnknown() {
+		data.TPMLimit = types.Int64Null()
 	}
-	if rpm, ok := teamInfo["rpm_limit"].(float64); ok {
-		data.RPMLimit = types.Int64Value(int64(rpm))
+	if v, exists := teamInfo["rpm_limit"]; exists {
+		if rpm, ok := v.(float64); ok {
+			data.RPMLimit = types.Int64Value(int64(rpm))
+		} else if v == nil {
+			data.RPMLimit = types.Int64Null()
+		}
+	} else if data.RPMLimit.IsUnknown() {
+		data.RPMLimit = types.Int64Null()
 	}
-	if maxBudget, ok := teamInfo["max_budget"].(float64); ok {
-		data.MaxBudget = types.Float64Value(maxBudget)
+	if v, exists := teamInfo["max_budget"]; exists {
+		if maxBudget, ok := v.(float64); ok {
+			data.MaxBudget = types.Float64Value(maxBudget)
+		} else if v == nil {
+			data.MaxBudget = types.Float64Null()
+		}
+	} else if data.MaxBudget.IsUnknown() {
+		data.MaxBudget = types.Float64Null()
 	}
-	if budgetDuration, ok := teamInfo["budget_duration"].(string); ok && budgetDuration != "" {
-		data.BudgetDuration = types.StringValue(budgetDuration)
+	if v, exists := teamInfo["budget_duration"]; exists {
+		if budgetDuration, ok := v.(string); ok && budgetDuration != "" {
+			data.BudgetDuration = types.StringValue(budgetDuration)
+		} else if v == nil {
+			data.BudgetDuration = types.StringNull()
+		}
+	} else if data.BudgetDuration.IsUnknown() {
+		data.BudgetDuration = types.StringNull()
 	}
 	if blocked, ok := teamInfo["blocked"].(bool); ok {
 		data.Blocked = types.BoolValue(blocked)
@@ -571,14 +625,32 @@ func (r *TeamResource) readTeam(ctx context.Context, data *TeamResourceModel) er
 	if rpmLimitType, ok := teamInfo["rpm_limit_type"].(string); ok && rpmLimitType != "" {
 		data.RPMLimitType = types.StringValue(rpmLimitType)
 	}
-	if teamMemberBudget, ok := teamInfo["team_member_budget"].(float64); ok {
-		data.TeamMemberBudget = types.Float64Value(teamMemberBudget)
+	if v, exists := teamInfo["team_member_budget"]; exists {
+		if teamMemberBudget, ok := v.(float64); ok {
+			data.TeamMemberBudget = types.Float64Value(teamMemberBudget)
+		} else if v == nil {
+			data.TeamMemberBudget = types.Float64Null()
+		}
+	} else if data.TeamMemberBudget.IsUnknown() {
+		data.TeamMemberBudget = types.Float64Null()
 	}
-	if teamMemberRPMLimit, ok := teamInfo["team_member_rpm_limit"].(float64); ok {
-		data.TeamMemberRPMLimit = types.Int64Value(int64(teamMemberRPMLimit))
+	if v, exists := teamInfo["team_member_rpm_limit"]; exists {
+		if teamMemberRPMLimit, ok := v.(float64); ok {
+			data.TeamMemberRPMLimit = types.Int64Value(int64(teamMemberRPMLimit))
+		} else if v == nil {
+			data.TeamMemberRPMLimit = types.Int64Null()
+		}
+	} else if data.TeamMemberRPMLimit.IsUnknown() {
+		data.TeamMemberRPMLimit = types.Int64Null()
 	}
-	if teamMemberTPMLimit, ok := teamInfo["team_member_tpm_limit"].(float64); ok {
-		data.TeamMemberTPMLimit = types.Int64Value(int64(teamMemberTPMLimit))
+	if v, exists := teamInfo["team_member_tpm_limit"]; exists {
+		if teamMemberTPMLimit, ok := v.(float64); ok {
+			data.TeamMemberTPMLimit = types.Int64Value(int64(teamMemberTPMLimit))
+		} else if v == nil {
+			data.TeamMemberTPMLimit = types.Int64Null()
+		}
+	} else if data.TeamMemberTPMLimit.IsUnknown() {
+		data.TeamMemberTPMLimit = types.Int64Null()
 	}
 
 	// Handle models list - preserve null when API returns empty and config didn't specify models

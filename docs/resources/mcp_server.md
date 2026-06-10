@@ -77,6 +77,21 @@ resource "litellm_mcp_server" "authenticated" {
 }
 ```
 
+### Internal URL / Skip URL Validation
+
+Use `skip_url_validation` when the MCP server URL is reachable from LiteLLM but not from the Terraform runner, such as a Kubernetes-internal service DNS name.
+
+```hcl
+resource "litellm_mcp_server" "internal" {
+  server_name         = "lightrag"
+  url                 = "http://mcp.kar-dp-lightrag.svc.cluster.local:8000/mcp"
+  transport           = "http"
+  auth_type           = "none"
+  allow_all_keys      = true
+  skip_url_validation = true
+}
+```
+
 ### Stdio Transport
 
 ```hcl
@@ -112,9 +127,7 @@ resource "litellm_mcp_server" "oauth_server" {
     "client_secret" = var.oauth_client_secret
   }
 
-  extra_headers = {
-    "X-API-Version" = "2024-01"
-  }
+  extra_headers = ["X-API-Version"]
 
   static_headers = {
     "Accept" = "application/json"
@@ -147,12 +160,13 @@ The following arguments are supported:
 - `env` - (Map of String) Environment variables to set when running the MCP server.
 - `credentials` - (Map of String, Sensitive) Credentials for authenticating with the MCP server. This attribute is marked as sensitive and will not be displayed in plan output.
 - `allowed_tools` - (List of String) List of tool names that are allowed to be used from this server.
-- `extra_headers` - (Map of String) Additional HTTP headers to include in requests.
+- `extra_headers` - (List of String) Extra header names to forward/include in requests. This matches the LiteLLM API schema.
 - `static_headers` - (Map of String) Static HTTP headers that are always included in requests.
 - `authorization_url` - (String) OAuth2 authorization URL (used with `oauth2` auth type).
 - `token_url` - (String) OAuth2 token URL (used with `oauth2` auth type).
 - `registration_url` - (String) OAuth2 dynamic client registration URL (used with `oauth2` auth type).
 - `allow_all_keys` - (Bool) Whether all API keys are allowed to access this MCP server.
+- `skip_url_validation` - (Bool) Skip MCP server URL reachability validation during creation/update. Use this when the MCP server is reachable from LiteLLM but not from the Terraform runner or validation path.
 
 ### Nested Blocks
 
