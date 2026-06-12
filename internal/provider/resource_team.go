@@ -411,13 +411,12 @@ func (r *TeamResource) buildTeamRequest(ctx context.Context, data *TeamResourceM
 		teamReq["blocked"] = data.Blocked.ValueBool()
 	}
 
-	// List fields - check IsNull, IsUnknown, and len > 0
+	// Send models when explicitly set (including empty list to clear direct model assignments).
+	// Null means "unmanaged — don't touch"; empty list means "explicitly no direct models".
 	if !data.Models.IsNull() && !data.Models.IsUnknown() {
 		var models []string
 		data.Models.ElementsAs(ctx, &models, false)
-		if len(models) > 0 {
-			teamReq["models"] = models
-		}
+		teamReq["models"] = models
 	}
 
 	if !data.Tags.IsNull() && !data.Tags.IsUnknown() {
