@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -31,9 +32,10 @@ type TeamListItem struct {
 }
 
 type TeamsListDataSourceModel struct {
-	ID             types.String   `tfsdk:"id"`
-	OrganizationID types.String   `tfsdk:"organization_id"`
-	Teams          []TeamListItem `tfsdk:"teams"`
+	ID               types.String   `tfsdk:"id"`
+	OrganizationID   types.String   `tfsdk:"organization_id"`
+	Teams            []TeamListItem `tfsdk:"teams"`
+	TeamIDsByAlias   types.Map      `tfsdk:"team_ids_by_alias"`
 }
 
 func (d *TeamsListDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -51,6 +53,11 @@ func (d *TeamsListDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"organization_id": schema.StringAttribute{
 				Description: "Optional organization ID to filter teams.",
 				Optional:    true,
+			},
+			"team_ids_by_alias": schema.MapAttribute{
+				Description: "Map of team alias to team ID. Use this to look up SCIM-managed team IDs by name without hardcoding them.",
+				Computed:    true,
+				ElementType: types.StringType,
 			},
 			"teams": schema.ListNestedAttribute{
 				Description: "List of teams.",
@@ -186,6 +193,18 @@ func (d *TeamsListDataSource) Read(ctx context.Context, req datasource.ReadReque
 
 		data.Teams = append(data.Teams, item)
 	}
+
+	// Build team_ids_by_alias map from the parsed teams list
+	aliasMap := make(map[string]attr.Value, len(data.Teams))
+	for _, item := range data.Teams {
+		if !item.TeamAlias.IsNull() && !item.TeamAlias.IsUnknown() && item.TeamAlias.ValueString() != "" &&
+			!item.TeamID.IsNull() && !item.TeamID.IsUnknown() {
+			aliasMap[item.TeamAlias.ValueString()] = item.TeamID
+		}
+	}
+	mapVal, diags := types.MapValue(types.StringType, aliasMap)
+	resp.Diagnostics.Append(diags...)
+	data.TeamIDsByAlias = mapVal
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
