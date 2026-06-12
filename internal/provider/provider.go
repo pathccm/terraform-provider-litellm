@@ -178,6 +178,8 @@ func (p *LiteLLMProvider) Resources(ctx context.Context) []func() resource.Resou
 		NewTagResource,
 		NewAccessGroupResource,
 		NewUnifiedAccessGroupResource,
+		NewInternalUserSettingsResource,
+		NewDefaultTeamSettingsResource,
 		NewPromptResource,
 		NewGuardrailResource,
 		NewSearchToolResource,
