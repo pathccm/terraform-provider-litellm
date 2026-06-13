@@ -326,6 +326,9 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	if !data.TeamMemberPermissions.Equal(state.TeamMemberPermissions) {
 		var permissions []string
 		data.TeamMemberPermissions.ElementsAs(ctx, &permissions, false)
+		if permissions == nil {
+			permissions = []string{}
+		}
 		permReq := map[string]interface{}{
 			"team_id":                 data.ID.ValueString(),
 			"team_member_permissions": permissions,
