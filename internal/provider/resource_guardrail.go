@@ -323,30 +323,10 @@ func (r *GuardrailResource) readGuardrail(ctx context.Context, data *GuardrailRe
 			}
 		}
 
-		// Store other litellm_params as JSON (excluding guardrail, mode, default_on).
-		// Only update if the user originally configured litellm_params to avoid
-		// adopting the API's massive default parameter set.
-		// Additionally, only preserve the keys the user originally configured to
-		// prevent the API's expanded defaults from being stored in state.
-		if !data.LitellmParams.IsNull() && !data.LitellmParams.IsUnknown() {
-			// Parse the user's original litellm_params to get configured keys
-			var userParams map[string]interface{}
-			if err := json.Unmarshal([]byte(data.LitellmParams.ValueString()), &userParams); err == nil {
-				otherParams := make(map[string]interface{})
-				for k := range userParams {
-					if k != "guardrail" && k != "mode" && k != "default_on" {
-						if v, exists := litellmParams[k]; exists {
-							otherParams[k] = v
-						}
-					}
-				}
-				if len(otherParams) > 0 {
-					if jsonBytes, err := json.Marshal(otherParams); err == nil {
-						data.LitellmParams = types.StringValue(string(jsonBytes))
-					}
-				}
-			}
-		}
+		// litellm_params: preserve the configured value unchanged.
+		// The API enriches/normalizes the JSON (adds default fields, reorders keys,
+		// fills in nulls), so reading it back would produce a persistent diff on
+		// every plan. We track user intent only; API-side drift is not detected.
 	}
 
 	// Handle guardrail_info
