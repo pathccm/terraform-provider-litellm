@@ -681,7 +681,10 @@ func (r *TeamResource) readTeam(ctx context.Context, data *TeamResourceModel) er
 		data.Tags, _ = types.ListValue(types.StringType, []attr.Value{})
 	}
 
-	// Handle guardrails list - preserve null when API returns empty and config didn't specify guardrails
+	// Handle guardrails list - the API does not return guardrails in team/info responses,
+	// so we only update state when the API does return them. When the API returns nothing,
+	// we preserve whatever is already in state (config value or prior state) to avoid
+	// "element vanished" inconsistency errors after apply.
 	if guardrails, ok := teamInfo["guardrails"].([]interface{}); ok && len(guardrails) > 0 {
 		guardrailsList := make([]attr.Value, 0, len(guardrails))
 		for _, g := range guardrails {
@@ -690,8 +693,6 @@ func (r *TeamResource) readTeam(ctx context.Context, data *TeamResourceModel) er
 			}
 		}
 		data.Guardrails, _ = types.ListValue(types.StringType, guardrailsList)
-	} else if !data.Guardrails.IsNull() {
-		data.Guardrails, _ = types.ListValue(types.StringType, []attr.Value{})
 	}
 
 	// Handle prompts list - preserve null when API returns empty and config didn't specify prompts
